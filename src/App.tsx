@@ -96,9 +96,9 @@ export const App: React.FC = () => {
       setNewTodoTitle(title);
       setTimeout(clearErrorMessage, 3000);
     } finally {
-      resetFocus();
       setAddTodo(false);
       setTempTodo(null);
+      resetFocus();
     }
   };
 
@@ -122,7 +122,7 @@ export const App: React.FC = () => {
       .filter(todo => todo.completed)
       .map(todo => todo.id);
 
-    completedIds.forEach(id => handleDeleteTodo(id));
+    await Promise.all(completedIds.map(id => handleDeleteTodo(id)));
   };
 
   const handleTodoChange = async (id: number, data: { completed: boolean }) => {
@@ -131,7 +131,7 @@ export const App: React.FC = () => {
     setErrorMessage(null);
 
     try {
-      const updatedTodo = await updateTodo(id, data.completed);
+      const updatedTodo = await updateTodo(id, data);
 
       setTodos(currentTodos =>
         currentTodos.map(todo =>
@@ -161,12 +161,9 @@ export const App: React.FC = () => {
     ]);
 
     try {
-      // Чекаємо завершення усіх запитів
       await Promise.all(
         todosToUpdate.map(todo => updateTodo(todo.id, !allCompleted)),
       );
-
-      // Масово оновлюємо стан
       setTodos(currTodos =>
         currTodos.map(todo =>
           todosToUpdate.some(t => t.id === todo.id)
@@ -210,6 +207,7 @@ export const App: React.FC = () => {
 
       <div className="todoapp__content">
         <Header
+          todosCount={todos.length}
           addTodo={addTodo}
           loading={loading}
           setIsLoading={setLoading}

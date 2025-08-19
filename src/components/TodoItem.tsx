@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import { Todo } from '../types/Todo';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ErrorTypes } from '../types/ErrorTypes';
 
 type Props = {
@@ -29,7 +29,7 @@ export const TodoItem: React.FC<Props> = ({
   const [editedTitle, setEditedTitle] = useState(title);
 
   const resetFocus = () => {
-    inputRef.current?.focus();
+    setTimeout(() => inputRef.current?.focus(), 0);
   };
 
   const activateEditMode = () => {
@@ -73,6 +73,28 @@ export const TodoItem: React.FC<Props> = ({
     }
   };
 
+  const handleBlur = async () => {
+    await saveChanges();
+  };
+
+  const handleKey = async (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      await saveChanges();
+    }
+
+    if (event.key === 'Escape') {
+      setEditedTitle(title);
+      setIsEditing(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isEditing) {
+      inputRef.current?.focus();
+    }
+  }, [isEditing]);
+
   return (
     <div
       data-cy="Todo"
@@ -96,9 +118,11 @@ export const TodoItem: React.FC<Props> = ({
       {isEditing ? (
         <input
           type="text"
+          data-cy="TodoTitleField"
           value={editedTitle}
           onChange={e => setEditedTitle(e.target.value)}
-          onBlur={saveChanges}
+          onBlur={handleBlur}
+          onKeyDown={handleKey}
           ref={inputRef}
           disabled={isLoading}
           autoFocus
@@ -113,27 +137,27 @@ export const TodoItem: React.FC<Props> = ({
         </span>
       )}
 
-      <button
-        type="button"
-        className="todo__remove"
-        data-cy="TodoDelete"
-        onClick={() => handleDeleteTodo(id)}
-        disabled={isLoading}
-      >
-        ×
-      </button>
-
-      {isLoading && (
-        <div
-          data-cy="TodoLoader"
-          className={classNames('modal', 'overlay', {
-            'is-active': isLoading,
-          })}
+      {!isEditing && (
+        <button
+          type="button"
+          className="todo__remove"
+          data-cy="TodoDelete"
+          onClick={() => handleDeleteTodo(id)}
+          disabled={isLoading}
         >
-          <div className="modal-background has-background-white-ter" />
-          <div className="loader" />
-        </div>
+          ×
+        </button>
       )}
+
+      <div
+        data-cy="TodoLoader"
+        className={classNames('modal', 'overlay', {
+          'is-active': isLoading,
+        })}
+      >
+        <div className="modal-background has-background-white-ter" />
+        <div className="loader" />
+      </div>
     </div>
   );
 };

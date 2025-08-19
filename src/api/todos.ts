@@ -17,7 +17,7 @@ export const deleteTodo = (id: number) => {
 
 export const updateTodo = async (
   id: number,
-  completed: boolean,
+  data: Partial<Pick<Todo, 'completed' | 'title'>>,
 ): Promise<Todo> => {
-  return client.patch(`/todos/${id}`, { completed });
+  return client.patch(`/todos/${id}`, data);
 };

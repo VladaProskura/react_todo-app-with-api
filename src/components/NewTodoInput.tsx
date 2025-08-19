@@ -1,7 +1,9 @@
 import React, { useEffect } from 'react';
 import { ErrorTypes } from '../types/ErrorTypes';
+import classNames from 'classnames';
 
 type Props = {
+  todosCount: number;
   setErrorMessage: React.Dispatch<React.SetStateAction<ErrorTypes | null>>;
   addTodo: boolean;
   handleAddTodo: (title: string) => Promise<void>;
@@ -10,9 +12,12 @@ type Props = {
   inputRef: React.RefObject<HTMLInputElement>;
   loading: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  toggleAllTodos: () => Promise<void>;
+  allCompleted: boolean;
 };
 
 export const NewTodoInput: React.FC<Props> = ({
+  todosCount,
   setErrorMessage,
   addTodo,
   handleAddTodo,
@@ -21,6 +26,8 @@ export const NewTodoInput: React.FC<Props> = ({
   inputRef,
   loading,
   setIsLoading,
+  toggleAllTodos,
+  allCompleted,
 }) => {
   const resetFocus = () => {
     inputRef.current?.focus();
@@ -45,12 +52,11 @@ export const NewTodoInput: React.FC<Props> = ({
       setIsLoading(true);
       setErrorMessage(null);
       await handleAddTodo(trimmedValue);
-      setNewTodoTitle('');
+      setTimeout(() => resetFocus(), 0);
     } catch (error) {
       showError(ErrorTypes.ADD_TODO_FAILED);
     } finally {
       setIsLoading(false);
-      resetFocus();
     }
   };
 
@@ -58,6 +64,7 @@ export const NewTodoInput: React.FC<Props> = ({
     event.preventDefault();
     if (!addTodo) {
       await saveTodo();
+      resetFocus();
     }
   };
 
@@ -87,6 +94,21 @@ export const NewTodoInput: React.FC<Props> = ({
 
   return (
     <form onSubmit={handleSubmit}>
+      {todosCount > 0 && (
+        <button
+          data-cy="ToggleAllButton"
+          type="button"
+          className={classNames('todoapp__toggle-all-button', {
+            active: allCompleted,
+            completed: allCompleted,
+          })}
+          onClick={toggleAllTodos}
+          disabled={loading}
+        >
+          {allCompleted ? '✓' : '⌄'}
+        </button>
+      )}
+
       <input
         data-cy="NewTodoField"
         type="text"

@@ -1,9 +1,9 @@
 import React from 'react';
-import classNames from 'classnames';
 import { NewTodoInput } from './NewTodoInput';
 import { ErrorTypes } from '../types/ErrorTypes';
 
 type HeaderProps = {
+  todosCount: number;
   handleAddTodo: (title: string) => Promise<void>;
   addTodo: boolean;
   setErrorMessage: React.Dispatch<React.SetStateAction<ErrorTypes | null>>;
@@ -17,6 +17,7 @@ type HeaderProps = {
 };
 
 export const Header: React.FC<HeaderProps> = ({
+  todosCount,
   handleAddTodo,
   addTodo,
   setErrorMessage,
@@ -30,17 +31,8 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   return (
     <header className="todoapp__header">
-      <button
-        type="button"
-        className={classNames('toggle-all', { active: allCompleted })}
-        data-cy="ToggleAllButton"
-        onClick={toggleAllTodos}
-        aria-pressed={allCompleted}
-      >
-        {allCompleted ? 'Remove marks' : 'Mark all'}
-      </button>
-
       <NewTodoInput
+        todosCount={todosCount}
         addTodo={addTodo}
         setErrorMessage={setErrorMessage}
         handleAddTodo={handleAddTodo}
@@ -49,6 +41,8 @@ export const Header: React.FC<HeaderProps> = ({
         inputRef={inputRef}
         loading={loading}
         setIsLoading={setIsLoading}
+        toggleAllTodos={toggleAllTodos}
+        allCompleted={allCompleted}
       />
     </header>
   );
