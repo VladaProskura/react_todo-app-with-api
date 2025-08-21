@@ -181,7 +181,10 @@ export const App: React.FC = () => {
     }
   };
 
-  const handleEditTodo = async (id: number, newTitle: string) => {
+  const handleEditTodo = async (
+    id: number,
+    newTitle: string,
+  ): Promise<boolean> => {
     setLoadingTodos(current => [...current, id]);
     try {
       await updateTodo(id, { title: newTitle });
@@ -190,8 +193,12 @@ export const App: React.FC = () => {
           todo.id === id ? { ...todo, title: newTitle } : todo,
         ),
       );
+
+      return true;
     } catch (error) {
       setErrorMessage(ErrorTypes.UPDATE_TODO_FAILED);
+
+      return false;
     } finally {
       setLoadingTodos(current => current.filter(todoId => todoId !== id));
     }
@@ -229,8 +236,6 @@ export const App: React.FC = () => {
             inputRef={inputRef}
             loadingTodos={loadingTodos}
             isLoading={loading}
-            setIsLoading={setLoading}
-            setErrorMessage={setErrorMessage}
           />
         )}
 

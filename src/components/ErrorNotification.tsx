@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import classNames from 'classnames';
 
 type ErrorNotificationProps = {
@@ -10,6 +10,16 @@ export const ErrorNotification: React.FC<ErrorNotificationProps> = ({
   errorMessage,
   clearErrorMessage,
 }) => {
+  useEffect(() => {
+    if (errorMessage) {
+      const timer = setTimeout(() => {
+        clearErrorMessage();
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [errorMessage, clearErrorMessage]);
+
   return (
     <div
       data-cy="ErrorNotification"

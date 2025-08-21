@@ -1,17 +1,14 @@
 import classNames from 'classnames';
 import { Todo } from '../types/Todo';
 import React, { useState, useEffect } from 'react';
-import { ErrorTypes } from '../types/ErrorTypes';
 
 type Props = {
   todo: Todo;
   onChange: (id: number, data: { completed: boolean }) => Promise<void>;
   handleDeleteTodo: (id: number) => Promise<void>;
-  handleEditTodo: (id: number, newTitle: string) => Promise<void>;
+  handleEditTodo: (id: number, newTitle: string) => Promise<boolean>;
   inputRef: React.RefObject<HTMLInputElement>;
   isLoading: boolean;
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  setErrorMessage: React.Dispatch<React.SetStateAction<ErrorTypes | null>>;
 };
 
 export const TodoItem: React.FC<Props> = ({
@@ -21,8 +18,6 @@ export const TodoItem: React.FC<Props> = ({
   handleEditTodo,
   inputRef,
   isLoading,
-  setIsLoading,
-  setErrorMessage,
 }) => {
   const { id, title, completed } = todo;
   const [isEditing, setIsEditing] = useState(false);
@@ -33,8 +28,10 @@ export const TodoItem: React.FC<Props> = ({
   };
 
   const activateEditMode = () => {
-    setIsEditing(true);
-    resetFocus();
+    setTimeout(() => {
+      setIsEditing(true);
+      resetFocus();
+    }, 0);
   };
 
   const saveChanges = async () => {
@@ -48,32 +45,24 @@ export const TodoItem: React.FC<Props> = ({
     }
 
     if (!trimmedTitle) {
-      try {
-        setIsLoading(true);
-        await handleDeleteTodo(id);
-      } catch {
-        setErrorMessage(ErrorTypes.DELETE_TODO_FAILED);
-      } finally {
-        setIsLoading(false);
-        resetFocus();
-      }
+      await handleDeleteTodo(id);
 
       return;
     }
 
-    try {
-      setIsLoading(true);
-      await handleEditTodo(id, trimmedTitle);
+    const response = await handleEditTodo(id, trimmedTitle);
+
+    if (response) {
       setIsEditing(false);
-    } catch {
-      setErrorMessage(ErrorTypes.UPDATE_TODO_FAILED);
-    } finally {
-      setIsLoading(false);
       resetFocus();
     }
   };
 
   const handleBlur = async () => {
+    if (!isEditing) {
+      return;
+    }
+
     await saveChanges();
   };
 
