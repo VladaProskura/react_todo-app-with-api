@@ -162,7 +162,11 @@ export const App: React.FC = () => {
 
     try {
       await Promise.all(
-        todosToUpdate.map(todo => updateTodo(todo.id, !allCompleted)),
+        todosToUpdate.map(todo =>
+          updateTodo(todo.id, {
+            completed: !allCompleted,
+          }),
+        ),
       );
       setTodos(currTodos =>
         currTodos.map(todo =>

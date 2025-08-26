@@ -98,15 +98,13 @@ export const NewTodoInput: React.FC<Props> = ({
         <button
           data-cy="ToggleAllButton"
           type="button"
-          className={classNames('todoapp__toggle-all-button', {
+          className={classNames('todoapp__toggle-all', {
             active: allCompleted,
             completed: allCompleted,
           })}
           onClick={toggleAllTodos}
           disabled={loading}
-        >
-          {allCompleted ? '✓' : '⌄'}
-        </button>
+        ></button>
       )}
 
       <input

@@ -1,6 +1,7 @@
+import React, { useState, useRef, useEffect } from 'react';
 import classNames from 'classnames';
 import { Todo } from '../types/Todo';
-import React, { useState, useEffect } from 'react';
+import { MutableRefObject } from 'react';
 
 type Props = {
   todo: Todo;
@@ -22,16 +23,51 @@ export const TodoItem: React.FC<Props> = ({
   const { id, title, completed } = todo;
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(title);
+  const [inputWidth, setInputWidth] = useState<number | null>(null);
+  const titleRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    setEditedTitle(title);
+  }, [title]);
 
   const resetFocus = () => {
     setTimeout(() => inputRef.current?.focus(), 0);
   };
 
-  const activateEditMode = () => {
-    setTimeout(() => {
-      setIsEditing(true);
-      resetFocus();
-    }, 0);
+  const handleCheckBoxChange = async () => {
+    if (isLoading) {
+      return;
+    }
+
+    await onChange(id, { completed: !completed });
+  };
+
+  function calculateElementWidth(
+    elementRef: MutableRefObject<HTMLElement | null>,
+    setWidth: (width: number) => void,
+  ) {
+    if (elementRef.current) {
+      const element = elementRef.current;
+      const computedStyle = window.getComputedStyle(element);
+      const padding =
+        parseFloat(computedStyle.paddingLeft) +
+        parseFloat(computedStyle.paddingRight);
+      const width = element.offsetWidth - padding;
+
+      setWidth(width);
+    }
+  }
+
+  const activateEditMode = (event: React.MouseEvent<HTMLSpanElement>) => {
+    if (isEditing) {
+      return;
+    }
+
+    event.preventDefault();
+    calculateElementWidth(titleRef, setInputWidth);
+
+    setIsEditing(true);
+    resetFocus();
   };
 
   const saveChanges = async () => {
@@ -79,18 +115,13 @@ export const TodoItem: React.FC<Props> = ({
   };
 
   useEffect(() => {
-    if (isEditing) {
-      inputRef.current?.focus();
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
     }
   }, [isEditing]);
 
   return (
-    <div
-      data-cy="Todo"
-      className={classNames('todo', {
-        completed: completed,
-      })}
-    >
+    <div data-cy="Todo" className={classNames('todo', { completed })}>
       {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
       <label htmlFor={`todo-${id}`} className="todo__status-label">
         <input
@@ -99,7 +130,7 @@ export const TodoItem: React.FC<Props> = ({
           type="checkbox"
           className="todo__status"
           checked={completed}
-          onChange={() => onChange(id, { completed: !completed })}
+          onChange={handleCheckBoxChange}
           disabled={isLoading}
         />
       </label>
@@ -110,17 +141,24 @@ export const TodoItem: React.FC<Props> = ({
           data-cy="TodoTitleField"
           value={editedTitle}
           onChange={e => setEditedTitle(e.target.value)}
-          onBlur={handleBlur}
           onKeyDown={handleKey}
+          onBlur={handleBlur}
           ref={inputRef}
           disabled={isLoading}
           autoFocus
+          style={{
+            width: inputWidth ? `${inputWidth}px` : '100%',
+            font: titleRef.current
+              ? window.getComputedStyle(titleRef.current).font
+              : 'inherit',
+          }}
         />
       ) : (
         <span
           data-cy="TodoTitle"
           className="todo__title"
           onDoubleClick={activateEditMode}
+          ref={titleRef}
         >
           {title}
         </span>
