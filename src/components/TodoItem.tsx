@@ -138,6 +138,7 @@ export const TodoItem: React.FC<Props> = ({
       {isEditing ? (
         <input
           type="text"
+          className="todoapp__title-field"
           data-cy="TodoTitleField"
           value={editedTitle}
           onChange={e => setEditedTitle(e.target.value)}
